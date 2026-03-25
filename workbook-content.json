@@ -21,13 +21,27 @@
             "isRequired": true,
             "typeSettings": {
               "selectableValues": [
-                { "durationMs": 3600000 },
-                { "durationMs": 14400000 },
-                { "durationMs": 43200000 },
-                { "durationMs": 86400000 },
-                { "durationMs": 172800000 },
-                { "durationMs": 604800000 },
-                { "durationMs": 2592000000 }
+                {
+                  "durationMs": 3600000
+                },
+                {
+                  "durationMs": 14400000
+                },
+                {
+                  "durationMs": 43200000
+                },
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 172800000
+                },
+                {
+                  "durationMs": 604800000
+                },
+                {
+                  "durationMs": 2592000000
+                }
               ]
             },
             "value": {
@@ -66,10 +80,15 @@
           "leftContent": {
             "columnMatch": "Value",
             "formatter": 12,
-            "formatOptions": { "palette": "auto" },
+            "formatOptions": {
+              "palette": "auto"
+            },
             "numberFormat": {
               "unit": 17,
-              "options": { "style": "decimal", "maximumFractionDigits": 1 }
+              "options": {
+                "style": "decimal",
+                "maximumFractionDigits": 1
+              }
             }
           },
           "showBorder": true
@@ -96,10 +115,15 @@
           "leftContent": {
             "columnMatch": "Value",
             "formatter": 12,
-            "formatOptions": { "palette": "auto" },
+            "formatOptions": {
+              "palette": "auto"
+            },
             "numberFormat": {
               "unit": 17,
-              "options": { "style": "decimal", "maximumFractionDigits": 1 }
+              "options": {
+                "style": "decimal",
+                "maximumFractionDigits": 1
+              }
             }
           },
           "showBorder": true
@@ -126,10 +150,15 @@
           "leftContent": {
             "columnMatch": "Value",
             "formatter": 12,
-            "formatOptions": { "palette": "auto" },
+            "formatOptions": {
+              "palette": "auto"
+            },
             "numberFormat": {
               "unit": 17,
-              "options": { "style": "decimal", "maximumFractionDigits": 1 }
+              "options": {
+                "style": "decimal",
+                "maximumFractionDigits": 1
+              }
             }
           },
           "showBorder": true
@@ -142,7 +171,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| extend statusCode = toint(resultSignature_d)\n| summarize Value = round(100.0 * countif(statusCode >= 400) / count(), 2)\n| extend Label = \"Error Rate %\"",
+        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| extend statusCode = toint(ResultSignature)\n| summarize Value = round(100.0 * countif(statusCode >= 400) / count(), 2)\n| extend Label = \"Error Rate %\"",
         "size": 4,
         "timeContextFromParameter": "TimeRange",
         "queryType": 0,
@@ -156,10 +185,15 @@
           "leftContent": {
             "columnMatch": "Value",
             "formatter": 12,
-            "formatOptions": { "palette": "auto" },
+            "formatOptions": {
+              "palette": "auto"
+            },
             "numberFormat": {
               "unit": 17,
-              "options": { "style": "decimal", "maximumFractionDigits": 1 }
+              "options": {
+                "style": "decimal",
+                "maximumFractionDigits": 1
+              }
             }
           },
           "showBorder": true
@@ -208,7 +242,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| extend StatusCode = tostring(toint(resultSignature_d))\n| summarize Count = count() by StatusCode\n| order by Count desc",
+        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| extend StatusCode = tostring(toint(ResultSignature))\n| summarize Count = count() by StatusCode\n| order by Count desc",
         "size": 0,
         "title": "Status Code Distribution",
         "timeContextFromParameter": "TimeRange",
@@ -244,9 +278,9 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| extend props = parse_json(properties_s)\n| extend ModelName = tostring(props.modelName)\n| extend TotalTokens = todouble(props.totalTokens)\n| where isnotempty(ModelName)\n| summarize Tokens = sum(TotalTokens) by ModelName\n| order by Tokens desc\n| take 10",
+        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| where isnotempty(OperationName)\n| summarize Requests = count() by OperationName\n| order by Requests desc\n| take 10",
         "size": 0,
-        "title": "Top Models by Token Usage",
+        "title": "Top Operations by Request Count",
         "timeContextFromParameter": "TimeRange",
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
@@ -259,9 +293,9 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| extend props = parse_json(properties_s)\n| extend TotalTokens = todouble(props.totalTokens)\n| extend ResourceName = tostring(split(_ResourceId, '/')[8])\n| summarize Tokens = sum(TotalTokens) by ResourceName\n| order by Tokens desc",
+        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| extend ResourceName = tostring(split(_ResourceId, \"/\")[8])\n| summarize Requests = count() by ResourceName\n| order by Requests desc",
         "size": 0,
-        "title": "Token Usage by Resource",
+        "title": "Requests by Resource (Logs)",
         "timeContextFromParameter": "TimeRange",
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
@@ -295,9 +329,9 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| extend props = parse_json(properties_s)\n| extend ResponseTime = todouble(props.responseTime)\n| extend ModelName = tostring(props.modelName)\n| where isnotempty(ResponseTime) and isnotempty(ModelName)\n| summarize P50 = percentile(ResponseTime, 50), P95 = percentile(ResponseTime, 95), P99 = percentile(ResponseTime, 99) by ModelName\n| order by P95 desc",
+        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| where isnotempty(DurationMs) and isnotempty(OperationName)\n| summarize P50 = round(percentile(DurationMs, 50), 1), P95 = round(percentile(DurationMs, 95), 1), P99 = round(percentile(DurationMs, 99), 1) by OperationName\n| order by P95 desc\n| take 10",
         "size": 0,
-        "title": "Latency Percentiles by Model (ms)",
+        "title": "Latency Percentiles by Operation (ms)",
         "timeContextFromParameter": "TimeRange",
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
@@ -332,7 +366,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| extend statusCode = toint(resultSignature_d)\n| summarize\n    ClientErrors = countif(statusCode >= 400 and statusCode < 500),\n    ServerErrors = countif(statusCode >= 500),\n    TotalRequests = count()\n    by bin(TimeGenerated, 5m)\n| extend ErrorRate = round(100.0 * (ClientErrors + ServerErrors) / TotalRequests, 2)\n| project TimeGenerated, ClientErrors, ServerErrors, ErrorRate",
+        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| extend statusCode = toint(ResultSignature)\n| summarize\n    ClientErrors = countif(statusCode >= 400 and statusCode < 500),\n    ServerErrors = countif(statusCode >= 500),\n    TotalRequests = count()\n    by bin(TimeGenerated, 5m)\n| extend ErrorRate = round(100.0 * (ClientErrors + ServerErrors) / TotalRequests, 2)\n| project TimeGenerated, ClientErrors, ServerErrors, ErrorRate",
         "size": 0,
         "title": "Error Rate Over Time",
         "timeContextFromParameter": "TimeRange",
@@ -346,7 +380,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| extend statusCode = toint(resultSignature_d)\n| where statusCode >= 400\n| summarize Count = count() by StatusCode = tostring(statusCode)\n| order by Count desc",
+        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| extend statusCode = toint(ResultSignature)\n| where statusCode >= 400\n| summarize Count = count() by StatusCode = tostring(statusCode)\n| order by Count desc",
         "size": 0,
         "title": "Error Count by Status Code",
         "timeContextFromParameter": "TimeRange",
@@ -361,7 +395,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| extend statusCode = toint(resultSignature_d)\n| where statusCode >= 400\n| extend ResourceName = tostring(split(_ResourceId, '/')[8])\n| summarize Errors = count() by ResourceName\n| order by Errors desc",
+        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| extend statusCode = toint(ResultSignature)\n| where statusCode >= 400\n| extend ResourceName = tostring(split(_ResourceId, '/')[8])\n| summarize Errors = count() by ResourceName\n| order by Errors desc",
         "size": 0,
         "title": "Errors by Resource",
         "timeContextFromParameter": "TimeRange",
