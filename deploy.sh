@@ -24,6 +24,7 @@ SUBSCRIPTION_ID="${SUBSCRIPTION_ID:-}"
 RESOURCE_GROUP="${RESOURCE_GROUP:-}"
 LOCATION="${LOCATION:-}"
 WORKSPACE_NAME="${WORKSPACE_NAME:-law-foundry-monitor}"
+EXISTING_WORKSPACE_ID="${EXISTING_WORKSPACE_ID:-}"
 WORKBOOK_NAME="${WORKBOOK_NAME:-Foundry OpenAI Monitor}"
 RETENTION_DAYS="${RETENTION_DAYS:-30}"
 DIAG_SETTING_NAME="${DIAG_SETTING_NAME:-foundry-diagnostic-all-logs}"
@@ -62,19 +63,26 @@ fi
 # ============================================================
 echo ""
 echo "=== Step 1/2: Deploying Infrastructure (Bicep) ==="
-echo "  Workspace : $WORKSPACE_NAME"
+if [ -n "$EXISTING_WORKSPACE_ID" ]; then
+  echo "  Using existing LAW: $EXISTING_WORKSPACE_ID"
+else
+  echo "  Creating new LAW : $WORKSPACE_NAME"
+fi
 echo "  Workbook  : $WORKBOOK_NAME"
 echo "  Location  : $LOCATION"
 echo ""
 
+BICEP_PARAMS=("location=$LOCATION" "workbookDisplayName=$WORKBOOK_NAME")
+if [ -n "$EXISTING_WORKSPACE_ID" ]; then
+  BICEP_PARAMS+=("existingWorkspaceId=$EXISTING_WORKSPACE_ID")
+else
+  BICEP_PARAMS+=("workspaceName=$WORKSPACE_NAME" "retentionInDays=$RETENTION_DAYS")
+fi
+
 DEPLOY_OUTPUT=$(az deployment group create \
   --resource-group "$RESOURCE_GROUP" \
   --template-file "$SCRIPT_DIR/main.bicep" \
-  --parameters \
-    location="$LOCATION" \
-    workspaceName="$WORKSPACE_NAME" \
-    workbookDisplayName="$WORKBOOK_NAME" \
-    retentionInDays="$RETENTION_DAYS" \
+  --parameters "${BICEP_PARAMS[@]}" \
   --query "properties.outputs" \
   -o json)
 
