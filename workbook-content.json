@@ -1,0 +1,380 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "# 🔍 Azure OpenAI Monitoring Dashboard\nReal-time monitoring for all Azure OpenAI resources across the subscription."
+      },
+      "name": "header"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "a2b5e5e1-7c3d-4c8f-9b1a-2e4f6a8c0d2e",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "type": 4,
+            "isRequired": true,
+            "typeSettings": {
+              "selectableValues": [
+                { "durationMs": 3600000 },
+                { "durationMs": 14400000 },
+                { "durationMs": 43200000 },
+                { "durationMs": 86400000 },
+                { "durationMs": 172800000 },
+                { "durationMs": 604800000 },
+                { "durationMs": 2592000000 }
+              ]
+            },
+            "value": {
+              "durationMs": 86400000
+            }
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "parameters"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## 📊 Overview"
+      },
+      "name": "overview-header"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureMetrics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where MetricName == \"AzureOpenAIRequests\"\n| summarize Value = sum(Total)\n| extend Label = \"Total Requests\"",
+        "size": 4,
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "tiles",
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "Label",
+            "formatter": 1
+          },
+          "leftContent": {
+            "columnMatch": "Value",
+            "formatter": 12,
+            "formatOptions": { "palette": "auto" },
+            "numberFormat": {
+              "unit": 17,
+              "options": { "style": "decimal", "maximumFractionDigits": 1 }
+            }
+          },
+          "showBorder": true
+        }
+      },
+      "customWidth": "25",
+      "name": "tile-total-requests"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureMetrics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where MetricName == \"TokenTransaction\"\n| summarize Value = sum(Total)\n| extend Label = \"Total Tokens\"",
+        "size": 4,
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "tiles",
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "Label",
+            "formatter": 1
+          },
+          "leftContent": {
+            "columnMatch": "Value",
+            "formatter": 12,
+            "formatOptions": { "palette": "auto" },
+            "numberFormat": {
+              "unit": 17,
+              "options": { "style": "decimal", "maximumFractionDigits": 1 }
+            }
+          },
+          "showBorder": true
+        }
+      },
+      "customWidth": "25",
+      "name": "tile-total-tokens"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureMetrics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where MetricName == \"AzureOpenAITimeToResponse\"\n| summarize Value = round(avg(Average), 1)\n| extend Label = \"Avg Latency (ms)\"",
+        "size": 4,
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "tiles",
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "Label",
+            "formatter": 1
+          },
+          "leftContent": {
+            "columnMatch": "Value",
+            "formatter": 12,
+            "formatOptions": { "palette": "auto" },
+            "numberFormat": {
+              "unit": 17,
+              "options": { "style": "decimal", "maximumFractionDigits": 1 }
+            }
+          },
+          "showBorder": true
+        }
+      },
+      "customWidth": "25",
+      "name": "tile-avg-latency"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| extend statusCode = toint(resultSignature_d)\n| summarize Value = round(100.0 * countif(statusCode >= 400) / count(), 2)\n| extend Label = \"Error Rate %\"",
+        "size": 4,
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "tiles",
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "Label",
+            "formatter": 1
+          },
+          "leftContent": {
+            "columnMatch": "Value",
+            "formatter": 12,
+            "formatOptions": { "palette": "auto" },
+            "numberFormat": {
+              "unit": 17,
+              "options": { "style": "decimal", "maximumFractionDigits": 1 }
+            }
+          },
+          "showBorder": true
+        }
+      },
+      "customWidth": "25",
+      "name": "tile-error-rate"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## 📈 HTTP Requests"
+      },
+      "name": "requests-header"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureMetrics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where MetricName == \"AzureOpenAIRequests\"\n| summarize Requests = sum(Total) by bin(TimeGenerated, 5m)",
+        "size": 0,
+        "title": "Requests Over Time",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "timechart"
+      },
+      "name": "requests-over-time"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureMetrics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where MetricName == \"AzureOpenAIRequests\"\n| extend ResourceName = tostring(split(_ResourceId, '/')[8])\n| summarize Requests = sum(Total) by ResourceName\n| order by Requests desc",
+        "size": 0,
+        "title": "Requests by Resource",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "barchart"
+      },
+      "customWidth": "50",
+      "name": "requests-by-resource"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| extend StatusCode = tostring(toint(resultSignature_d))\n| summarize Count = count() by StatusCode\n| order by Count desc",
+        "size": 0,
+        "title": "Status Code Distribution",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "piechart"
+      },
+      "customWidth": "50",
+      "name": "status-code-distribution"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## 🪙 Token Usage"
+      },
+      "name": "tokens-header"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureMetrics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where MetricName in (\"ProcessedPromptTokens\", \"GeneratedTokens\")\n| summarize Tokens = sum(Total) by bin(TimeGenerated, 5m), MetricName\n| extend TokenType = case(MetricName == \"ProcessedPromptTokens\", \"Prompt Tokens\", MetricName == \"GeneratedTokens\", \"Completion Tokens\", MetricName)\n| project TimeGenerated, TokenType, Tokens",
+        "size": 0,
+        "title": "Token Usage Over Time (Prompt vs Completion)",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "timechart"
+      },
+      "name": "token-usage-over-time"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| extend props = parse_json(properties_s)\n| extend ModelName = tostring(props.modelName)\n| extend TotalTokens = todouble(props.totalTokens)\n| where isnotempty(ModelName)\n| summarize Tokens = sum(TotalTokens) by ModelName\n| order by Tokens desc\n| take 10",
+        "size": 0,
+        "title": "Top Models by Token Usage",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "barchart"
+      },
+      "customWidth": "50",
+      "name": "tokens-by-model"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| extend props = parse_json(properties_s)\n| extend TotalTokens = todouble(props.totalTokens)\n| extend ResourceName = tostring(split(_ResourceId, '/')[8])\n| summarize Tokens = sum(TotalTokens) by ResourceName\n| order by Tokens desc",
+        "size": 0,
+        "title": "Token Usage by Resource",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "barchart"
+      },
+      "customWidth": "50",
+      "name": "tokens-by-resource"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## ⏱️ Latency"
+      },
+      "name": "latency-header"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureMetrics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where MetricName == \"AzureOpenAITimeToResponse\"\n| summarize AvgLatency = avg(Average), MaxLatency = max(Maximum) by bin(TimeGenerated, 5m)",
+        "size": 0,
+        "title": "Latency Over Time (Avg / Max)",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "timechart"
+      },
+      "name": "latency-over-time"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| extend props = parse_json(properties_s)\n| extend ResponseTime = todouble(props.responseTime)\n| extend ModelName = tostring(props.modelName)\n| where isnotempty(ResponseTime) and isnotempty(ModelName)\n| summarize P50 = percentile(ResponseTime, 50), P95 = percentile(ResponseTime, 95), P99 = percentile(ResponseTime, 99) by ModelName\n| order by P95 desc",
+        "size": 0,
+        "title": "Latency Percentiles by Model (ms)",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "table"
+      },
+      "customWidth": "50",
+      "name": "latency-percentiles-by-model"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureMetrics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where MetricName == \"AzureOpenAITimeToResponse\"\n| extend ResourceName = tostring(split(_ResourceId, '/')[8])\n| summarize AvgLatency = round(avg(Average), 1), MaxLatency = round(max(Maximum), 1) by ResourceName\n| order by AvgLatency desc",
+        "size": 0,
+        "title": "Latency by Resource (ms)",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "table"
+      },
+      "customWidth": "50",
+      "name": "latency-by-resource"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## ❌ Errors"
+      },
+      "name": "errors-header"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| extend statusCode = toint(resultSignature_d)\n| summarize\n    ClientErrors = countif(statusCode >= 400 and statusCode < 500),\n    ServerErrors = countif(statusCode >= 500),\n    TotalRequests = count()\n    by bin(TimeGenerated, 5m)\n| extend ErrorRate = round(100.0 * (ClientErrors + ServerErrors) / TotalRequests, 2)\n| project TimeGenerated, ClientErrors, ServerErrors, ErrorRate",
+        "size": 0,
+        "title": "Error Rate Over Time",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "timechart"
+      },
+      "name": "error-rate-over-time"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| extend statusCode = toint(resultSignature_d)\n| where statusCode >= 400\n| summarize Count = count() by StatusCode = tostring(statusCode)\n| order by Count desc",
+        "size": 0,
+        "title": "Error Count by Status Code",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "barchart"
+      },
+      "customWidth": "50",
+      "name": "errors-by-status-code"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\n| where Category == \"RequestResponse\"\n| extend statusCode = toint(resultSignature_d)\n| where statusCode >= 400\n| extend ResourceName = tostring(split(_ResourceId, '/')[8])\n| summarize Errors = count() by ResourceName\n| order by Errors desc",
+        "size": 0,
+        "title": "Errors by Resource",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "barchart"
+      },
+      "customWidth": "50",
+      "name": "errors-by-resource"
+    }
+  ],
+  "fallbackResourceIds": [
+    "{{LAW_RESOURCE_ID}}"
+  ],
+  "isLocked": false
+}
